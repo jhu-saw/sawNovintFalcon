@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# (C) Copyright 2011 Johns Hopkins University (JHU), All Rights
+# (C) Copyright 2011-2012 Johns Hopkins University (JHU), All Rights
 # Reserved.
 #
 # --- begin cisst license - do not edit ---
@@ -30,7 +30,7 @@ if (cisst_FOUND_AS_REQUIRED)
                mtsNovintHDL.cpp
                ../mtsNovintHDL.h
                )
-
+  set_property (TARGET sawNovintFalcon PROPERTY FOLDER "sawNovintFalcon")
   target_link_libraries (sawNovintFalcon ${NOVINT_LIBRARIES})
 
   set (sawNovintFalcon_INCLUDE_DIR "${sawComponents_SOURCE_DIR}")
