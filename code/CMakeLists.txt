@@ -25,23 +25,48 @@ if (cisst_FOUND_AS_REQUIRED)
   # load cisst configuration
   include (${CISST_USE_FILE})
 
-  add_library (sawNovintFalcon ${IS_SHARED}
-               ../sawNovintFalconExport.h
-               mtsNovintHDL.cpp
-               ../mtsNovintHDL.h
-               )
-  set_property (TARGET sawNovintFalcon PROPERTY FOLDER "sawNovintFalcon")
-  target_link_libraries (sawNovintFalcon ${NOVINT_LIBRARIES})
+  set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}")
+  find_package (NovintHDL REQUIRED)
 
-  set (sawNovintFalcon_INCLUDE_DIR "${sawComponents_SOURCE_DIR}")
-  set (sawNovintFalcon_LIBRARY_DIR "${LIBRARY_OUTPUT_PATH}")
-  set (sawNovintFalcon_LIBRARIES sawNovintFalcon ${NOVINT_LIBRARIES})
+  if (NOVINT_FOUND)
 
-  configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/sawNovintFalconConfig.cmake.in"
-                  "${sawComponents_BINARY_DIR}/sawNovintFalconConfig.cmake"
-                   @ONLY@)
+    set (sawNovintFalcon_INCLUDE_DIR "${sawNovintFalcon_SOURCE_DIR}/include")
+    set (sawNovintFalcon_LIBRARY_DIR "${LIBRARY_OUTPUT_PATH}")
+    set (sawNovintFalcon_LIBRARIES sawNovintFalcon ${NOVINT_LIBRARIES})
 
-  cisst_target_link_libraries (sawNovintFalcon ${REQUIRED_CISST_LIBRARIES})
+    include_directories (${NOVINT_INCLUDE_DIR} ${sawNovintFalcon_INCLUDE_DIR})
+    set (sawNovintFalcon_HEADER_DIR "${sawNovintFalcon_SOURCE_DIR}/include/sawNovintFalcon")
+    add_library (sawNovintFalcon ${IS_SHARED}
+                 ${sawNovintFalcon_HEADER_DIR}/sawNovintFalconExport.h
+                 mtsNovintHDL.cpp
+                 ${sawNovintFalcon_HEADER_DIR}/mtsNovintHDL.h
+                 )
+    set_property (TARGET sawNovintFalcon PROPERTY FOLDER "sawNovintFalcon")
+    target_link_libraries (sawNovintFalcon ${NOVINT_LIBRARIES})
+
+    configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/sawNovintFalconConfig.cmake.in"
+                    "${sawNovintFalcon_BINARY_DIR}/sawNovintFalconConfig.cmake"
+                     @ONLY@)
+
+    cisst_target_link_libraries (sawNovintFalcon ${REQUIRED_CISST_LIBRARIES})
+
+    # Install target for headers and library
+    install (DIRECTORY
+             ${sawNovintFalcon_INCLUDE_DIR}/sawNovintFalcon
+             DESTINATION include
+             PATTERN .svn EXCLUDE)
+
+    install (TARGETS sawNovintFalcon
+             RUNTIME DESTINATION bin
+             LIBRARY DESTINATION lib
+             ARCHIVE DESTINATION lib)
+
+    install (FILES "${sawNovintFalcon_BINARY_DIR}/sawNovintFalconConfig.cmake"
+             DESTINATION "${CISST_CMAKE_INSTALL_SUFFIX}/saw")
+
+  else (NOVINT_FOUND)
+    message (SEND_ERROR "code in ${CMAKE_CURRENT_SOURCE_DIR} requires NovintHDL.")
+  endif (NOVINT_FOUND)
 
 else (cisst_FOUND_AS_REQUIRED)
   message ("Information: code in ${CMAKE_CURRENT_SOURCE_DIR} will not be compiled, it requires ${REQUIRED_CISST_LIBRARIES}")
