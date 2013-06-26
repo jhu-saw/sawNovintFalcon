@@ -46,11 +46,11 @@ protected:
         bool DeviceEnabled;
 
         // local copy of the buttons state as defined by Sensable
-        mtsInt  Buttons;
-        
+        mtsInt Buttons;
+
         // local copy of the position and velocities
         prmPositionCartesianGet PositionCartesian;
-        
+
         // mtsFunction called to broadcast the event
         mtsFunctionWrite Button1Event, Button2Event, Button3Event, Button4Event;
 
