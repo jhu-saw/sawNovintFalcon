@@ -2,12 +2,10 @@
 /* ex: set filetype=cpp softtabstop=4 shiftwidth=4 tabstop=4 cindent expandtab: */
 
 /*
-
   Author(s): Gorkem Sevinc, Anton Deguet
   Created on: 2009-09-04
 
-  (C) Copyright 2009-2010 Johns Hopkins University (JHU), All Rights
-  Reserved.
+  (C) Copyright 2009-2015 Johns Hopkins University (JHU), All Rights Reserved.
 
 --- begin cisst license - do not edit ---
 
@@ -25,6 +23,8 @@ http://www.cisst.org/cisst/license.txt.
 #include <cisstParameterTypes/prmPositionCartesianGet.h>
 #include <cisstParameterTypes/prmForceCartesianSet.h>
 
+#include <sawNovintFalcon/sawNovintFalconRevision.h>
+
 // Always include last
 #include <sawNovintFalcon/sawNovintFalconExport.h>
 
@@ -37,7 +37,7 @@ class CISST_EXPORT mtsNovintHDL: public mtsTaskFromCallbackAdapter {
 
 public:
     enum {NB_JOINTS = 3};
-    int DeviceCount;
+    size_t DeviceCount;
 
 protected:
     // internal data using Novint data types
