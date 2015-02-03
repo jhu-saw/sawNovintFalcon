@@ -12,4 +12,4 @@
 # --- end cisst license ---
 
 add_subdirectory (guiFLTK)
-# add_subdirectory (Qt)
+add_subdirectory (Qt)

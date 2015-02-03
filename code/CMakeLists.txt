@@ -58,8 +58,8 @@ if (cisst_FOUND_AS_REQUIRED)
     target_link_libraries (sawNovintFalcon ${NOVINT_LIBRARIES})
 
     # add Qt code
-#    add_subdirectory (Qt)
-#    set (sawNovintFalcon_LIBRARIES ${sawNovintFalcon_LIBRARIES} ${sawNovintFalconQt_LIBRARIES})
+    add_subdirectory (Qt)
+    set (sawNovintFalcon_LIBRARIES ${sawNovintFalcon_LIBRARIES} ${sawNovintFalconQt_LIBRARIES})
 
     configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/sawNovintFalconConfig.cmake.in"
                     "${sawNovintFalcon_BINARY_DIR}/sawNovintFalconConfig.cmake"

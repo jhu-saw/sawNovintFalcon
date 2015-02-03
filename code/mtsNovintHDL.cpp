@@ -45,13 +45,13 @@ void mtsNovintHDL::Run(void)
     ProcessQueuedEvents();
 
     int currentButtons;
-    unsigned int index = 0;
-    const unsigned int end = this->DevicesVector.size();
+    size_t index = 0;
+    const size_t end = this->DevicesVector.size();
     DeviceData * deviceData;
-    mtsNovintHDLHandle     * handle;
+    mtsNovintHDLHandle * handle;
     HDLDeviceHandle hHD;
 
-    for (index; index != end; index++) {
+    for (index = 0; index != end; index++) {
         currentButtons = 0;
         deviceData = DevicesVector(index);
         handle = DevicesHandleVector(index);
@@ -224,6 +224,9 @@ void mtsNovintHDL::SetupInterfaces(void)
         providedInterface->AddCommandReadState(this->StateTable,
                                                deviceData->PositionCartesian,
                                                "GetPositionCartesian");
+        providedInterface->AddCommandReadState(this->StateTable,
+                                               StateTable.PeriodStats,
+                                               "GetPeriodStatistics");
 
         // add a method to read the current state index
         providedInterface->AddCommandRead(&mtsStateTable::GetIndexReader, &StateTable,
@@ -232,7 +235,7 @@ void mtsNovintHDL::SetupInterfaces(void)
         // Add interfaces for button with events
         for (size_t buttonIndex = 0; buttonIndex < 4; ++buttonIndex) {
             std::stringstream buttonInterfaceName;
-            buttonInterfaceName << interfaceName << "Button" << buttonIndex;
+            buttonInterfaceName << interfaceName << "Button" << (buttonIndex + 1);
             providedInterface = this->AddInterfaceProvided(buttonInterfaceName.str());
             providedInterface->AddEventWrite(deviceData->ButtonEvents[buttonIndex], "Button", prmEventButton());
         }
@@ -292,6 +295,7 @@ void mtsNovintHDL::Create(void * data)
 
     for (index; index != end; index++) {
         deviceData = DevicesVector(index);
+        deviceData->Buttons = 0;
         interfaceName = DevicesVector(index)->Name;
         handle = DevicesHandleVector(index);
         CMN_ASSERT(deviceData);
@@ -300,8 +304,7 @@ void mtsNovintHDL::Create(void * data)
         handle->DeviceHandle = hdlInitIndexedDevice(index);
 
         error = hdlGetError();
-        if (error != HDL_NO_ERROR)
-        {
+        if (error != HDL_NO_ERROR) {
             CMN_LOG_CLASS_INIT_ERROR << "Create: failed to initialize haptic device number "
                                      << index << " (" << interfaceName << ")" << std::endl;
             deviceData->DeviceEnabled = false;
