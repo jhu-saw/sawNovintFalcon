@@ -2,11 +2,10 @@
 /* ex: set filetype=cpp softtabstop=4 shiftwidth=4 tabstop=4 cindent expandtab: */
 
 /*
-
   Author(s): Gorkem Sevinc, Anton Deguet
   Created on: 2009-09-04
 
-  (C) Copyright 2009-2010 Johns Hopkins University (JHU), All Rights
+  (C) Copyright 2009-2015 Johns Hopkins University (JHU), All Rights
   Reserved.
 
 --- begin cisst license - do not edit ---
@@ -25,6 +24,8 @@ http://www.cisst.org/cisst/license.txt.
 #include <cisstMultiTask/mtsInterfaceProvided.h>
 #include <cisstParameterTypes/prmEventButton.h>
 
+static const int mtsNovintHDLButtonMasks[4] = {HDL_BUTTON_1, HDL_BUTTON_2, HDL_BUTTON_3, HDL_BUTTON_4};
+
 CMN_IMPLEMENT_SERVICES(mtsNovintHDL);
 
 struct mtsNovintHDLDriverData {
@@ -37,12 +38,12 @@ struct mtsNovintHDLHandle {
 };
 
 
-// The task Run method
+// The component Run method
 void mtsNovintHDL::Run(void)
 {
-	ProcessQueuedCommands();
+    ProcessQueuedCommands();
     ProcessQueuedEvents();
- 
+
     int currentButtons;
     unsigned int index = 0;
     const unsigned int end = this->DevicesVector.size();
@@ -57,7 +58,7 @@ void mtsNovintHDL::Run(void)
         // begin haptics frame
         hHD = handle->DeviceHandle;
         hdlMakeCurrent(hHD);
-        
+
         hdlToolPosition(deviceData->PositionCartesian.Position().Translation().Pointer());
         deviceData->PositionCartesian.Position().Translation().Multiply(1000.0); //Convert from m to mm
 
@@ -65,70 +66,30 @@ void mtsNovintHDL::Run(void)
         hdlToolButtons(&(currentButtons));
 
         // apply forces
-        // deviceData->ForceCartesian.Force().Y() += 1.421;
         hdlSetToolForce(deviceData->ForceCartesian.Force().Pointer());
 
         // time stamp used to date data
         mtsStateIndex stateIndex = this->StateTable.GetIndexWriter();
-        
+
         // compare to previous value to create events
         if (currentButtons != deviceData->Buttons) {
             int currentButtonState, previousButtonState;
             prmEventButton event;
-            // test for button 1
-            currentButtonState = currentButtons & HDL_BUTTON_1;
-            previousButtonState = deviceData->Buttons & HDL_BUTTON_1;
-            if (currentButtonState != previousButtonState) {
-                if (currentButtonState == 0) {
-                    event.SetType(prmEventButton::RELEASED);
-                } else {
-                    event.SetType(prmEventButton::PRESSED);
+
+            for (size_t buttonIndex = 0; buttonIndex < 4; ++buttonIndex) {
+                currentButtonState = currentButtons & mtsNovintHDLButtonMasks[buttonIndex];
+                previousButtonState = deviceData->Buttons & mtsNovintHDLButtonMasks[buttonIndex];
+                if (currentButtonState != previousButtonState) {
+                    if (currentButtonState == 0) {
+                        event.SetType(prmEventButton::RELEASED);
+                    } else {
+                        event.SetType(prmEventButton::PRESSED);
+                    }
+                    // throw the event
+                    deviceData->ButtonEvents[buttonIndex](event);
                 }
-                // throw the event
-                deviceData->Button1Event(event);
             }
-            // test for button 2
-            currentButtonState = currentButtons & HDL_BUTTON_2;
-            previousButtonState = deviceData->Buttons & HDL_BUTTON_2;
-            if (currentButtonState != previousButtonState) {
-                if (currentButtonState == 0) {
-                    deviceData->Clutch = false;
-                    event.SetType(prmEventButton::RELEASED);
-                } else {
-                    deviceData->Clutch = true;
-                    event.SetType(prmEventButton::PRESSED);
-                }
-                // throw the event
-                deviceData->Button2Event(event);
-            }
-            // test for button 3
-            currentButtonState = currentButtons & HDL_BUTTON_3;
-            previousButtonState = deviceData->Buttons & HDL_BUTTON_3;
-            if (currentButtonState != previousButtonState) {
-                if (currentButtonState == 0) {
-                    deviceData->Clutch = false;
-                    event.SetType(prmEventButton::RELEASED);
-                } else {
-                    deviceData->Clutch = true;
-                    event.SetType(prmEventButton::PRESSED);
-                }
-                // throw the event
-                deviceData->Button3Event(event);
-            }
-            // test for button 4
-            currentButtonState = currentButtons & HDL_BUTTON_4;
-            previousButtonState = deviceData->Buttons & HDL_BUTTON_4;
-            if (currentButtonState != previousButtonState) {
-                if (currentButtonState == 0) {
-                    deviceData->Clutch = false;
-                    event.SetType(prmEventButton::RELEASED);
-                } else {
-                    deviceData->Clutch = true;
-                    event.SetType(prmEventButton::PRESSED);
-                }
-                // throw the event
-                deviceData->Button4Event(event);
-            }
+
             // save previous buttons state
             deviceData->Buttons = currentButtons;
         }
@@ -155,8 +116,8 @@ void mtsNovintHDL::Run(void)
 }
 
 
-mtsNovintHDL::mtsNovintHDL(const std::string & taskName):
-    mtsTaskFromCallbackAdapter(taskName, 5000)
+mtsNovintHDL::mtsNovintHDL(const std::string & componentName):
+    mtsTaskFromCallbackAdapter(componentName, 5000)
 {
     CMN_LOG_CLASS_INIT_DEBUG << "constructor called, looking for \"DefaultArm\"" << std::endl;
     DevicesVector.SetSize(1);
@@ -168,9 +129,9 @@ mtsNovintHDL::mtsNovintHDL(const std::string & taskName):
 }
 
 
-mtsNovintHDL::mtsNovintHDL(const std::string & taskName, 
+mtsNovintHDL::mtsNovintHDL(const std::string & componentName,
                            const std::string & firstDeviceName):
-    mtsTaskFromCallbackAdapter(taskName, 5000)
+    mtsTaskFromCallbackAdapter(componentName, 5000)
 {
     CMN_LOG_CLASS_INIT_DEBUG << "constructor: looking for \"" << firstDeviceName << "\"" << std::endl;
     DevicesVector.SetSize(1);
@@ -178,25 +139,25 @@ mtsNovintHDL::mtsNovintHDL(const std::string & taskName,
     DevicesVector(0) = new DeviceData;
     DevicesVector(0)->DeviceNumber = 0;
     DevicesVector(0)->Name = firstDeviceName;
-    
+
     this->SetupInterfaces();
 }
 
 
-mtsNovintHDL::mtsNovintHDL(const char * taskName,
+mtsNovintHDL::mtsNovintHDL(const char * componentName,
                            const char * firstDeviceName,
                            const char * secondDeviceName):
-    mtsTaskFromCallbackAdapter(taskName, 5000)
+    mtsTaskFromCallbackAdapter(componentName, 5000)
 {
     this->SetInterfaces(std::string(firstDeviceName), std::string(secondDeviceName));
     this->SetupInterfaces();
 }
 
 
-mtsNovintHDL::mtsNovintHDL(const std::string & taskName,
+mtsNovintHDL::mtsNovintHDL(const std::string & componentName,
                            const std::string & firstDeviceName,
                            const std::string & secondDeviceName):
-    mtsTaskFromCallbackAdapter(taskName, 5000)
+    mtsTaskFromCallbackAdapter(componentName, 5000)
 {
     this->SetInterfaces(firstDeviceName, secondDeviceName);
     this->SetupInterfaces();
@@ -204,7 +165,7 @@ mtsNovintHDL::mtsNovintHDL(const std::string & taskName,
 
 
 void mtsNovintHDL::SetInterfaces(const std::string & firstDeviceName,
-                                  const std::string & secondDeviceName)
+                                 const std::string & secondDeviceName)
 {
     if (firstDeviceName == secondDeviceName) {
         CMN_LOG_CLASS_INIT_ERROR << "constructor: name of devices provided are identical, \""
@@ -267,14 +228,14 @@ void mtsNovintHDL::SetupInterfaces(void)
         // add a method to read the current state index
         providedInterface->AddCommandRead(&mtsStateTable::GetIndexReader, &StateTable,
                                           "GetStateIndex");
-        
+
         // Add interfaces for button with events
-        providedInterface = this->AddInterfaceProvided(interfaceName + "Button1");
-        deviceData->Button1Event.Bind(providedInterface->AddEventWrite("Button",
-                                                                       prmEventButton()));
-        providedInterface = this->AddInterfaceProvided(interfaceName + "Button2");
-        deviceData->Button2Event.Bind(providedInterface->AddEventWrite("Button",
-                                                                       prmEventButton()));
+        for (size_t buttonIndex = 0; buttonIndex < 4; ++buttonIndex) {
+            std::stringstream buttonInterfaceName;
+            buttonInterfaceName << interfaceName << "Button" << buttonIndex;
+            providedInterface = this->AddInterfaceProvided(buttonInterfaceName.str());
+            providedInterface->AddEventWrite(deviceData->ButtonEvents[buttonIndex], "Button", prmEventButton());
+        }
 
         // This allows us to return Data->RetValue from the Run method.
         this->Driver->CallbackReturnValue = HDL_SERVOOP_CONTINUE;
@@ -294,7 +255,7 @@ mtsNovintHDL::~mtsNovintHDL()
     }
     unsigned int index = 0;
     const unsigned int end = this->DevicesVector.size();
-    
+
     // Delete structs created
     for (index; index != end; index++) {
         if (DevicesVector(index)) {
@@ -309,10 +270,10 @@ mtsNovintHDL::~mtsNovintHDL()
 }
 
 void mtsNovintHDL::Create(void * data)
-{ 
+{
     unsigned int index = 0;
     const unsigned int end = this->DevicesVector.size();
-    
+
     DeviceData * deviceData;
     mtsNovintHDLHandle * handle;
     std::string interfaceName;
@@ -337,7 +298,7 @@ void mtsNovintHDL::Create(void * data)
 
         // Initialize device(s) based on name provided
         handle->DeviceHandle = hdlInitIndexedDevice(index);
-        
+
         error = hdlGetError();
         if (error != HDL_NO_ERROR)
         {
@@ -377,13 +338,13 @@ void mtsNovintHDL::Start(void)
         if (error != HDL_NO_ERROR) {
             CMN_LOG_CLASS_INIT_ERROR << "Start: failed to start scheduler" << std::endl;
         }
-    
+
         // Schedule the main callback that will communicate with the device
         this->Driver->CallbackHandle = hdlCreateServoOp(mtsTaskFromCallbackAdapter::CallbackAdapter<HDLServoOpExitCode>,
                                                         this->GetCallbackParameter(),
                                                         false);
 
-        if(this->Driver->CallbackHandle != HDL_NO_ERROR) {
+        if (this->Driver->CallbackHandle != HDL_NO_ERROR) {
             CMN_LOG_CLASS_INIT_ERROR << "Start: invalid Servo op handle" << std::endl;
         }
     }

@@ -52,11 +52,11 @@ int main(void)
 
     // create the tasks, i.e. find the commands
     componentManager->CreateAll();
-	componentManager->WaitForStateAll(mtsComponentState::READY, 10.0 * cmn_s);
+	componentManager->WaitForStateAll(mtsComponentState::READY, 2.0 * cmn_s);
 
     // start the periodic Run
     componentManager->StartAll();
-	componentManager->WaitForStateAll(mtsComponentState::ACTIVE, 10.0 * cmn_s);
+	componentManager->WaitForStateAll(mtsComponentState::ACTIVE, 2.0 * cmn_s);
 
     // wait until the close button of the UI is pressed
     while (true) {
@@ -68,8 +68,10 @@ int main(void)
 
     // cleanup
     componentManager->KillAll();
-	componentManager->WaitForStateAll(mtsComponentState::FINISHED, 10.0 * cmn_s);
+	componentManager->WaitForStateAll(mtsComponentState::FINISHED, 2.0 * cmn_s);
 
 	componentManager->Cleanup();
+    cmnLogger::Kill();
+
     return 0;
 }

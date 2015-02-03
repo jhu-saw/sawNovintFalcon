@@ -51,7 +51,7 @@ protected:
         prmPositionCartesianGet PositionCartesian;
 
         // mtsFunction called to broadcast the event
-        mtsFunctionWrite Button1Event, Button2Event, Button3Event, Button4Event;
+        mtsFunctionWrite ButtonEvents[4];
 
         prmForceCartesianSet ForceCartesian;
 
@@ -74,25 +74,25 @@ protected:
 private:
     /*! Default constructor, will use the default device connected and
       create and interface named "Default Arm" */
-    mtsNovintHDL(const std::string & taskName);
+    mtsNovintHDL(const std::string & componentName);
 
 public:
     /*! Constructor for a single arm with a user specified name.  The
       name is used for interface naming. Force output initially disabled. */
-    mtsNovintHDL(const std::string & taskName,
+    mtsNovintHDL(const std::string & componentName,
                  const std::string & firstDeviceName);
 
     /*! Constructor for two arms with a user specified names.  The
       names are used for interface naming.   Which falcon will be used
       depends on its index. Force output initially disabled */
     //@{
-    mtsNovintHDL(const std::string & taskName,
-                  const std::string & firstDeviceName,
-                  const std::string & secondDeviceName);
+    mtsNovintHDL(const std::string & componentName,
+                 const std::string & firstDeviceName,
+                 const std::string & secondDeviceName);
 
-    mtsNovintHDL(const char * taskName,
-                  const char * firstDeviceName,
-                  const char * secondDeviceName);
+    mtsNovintHDL(const char * componentName,
+                 const char * firstDeviceName,
+                 const char * secondDeviceName);
     //@}
 
     ~mtsNovintHDL();
