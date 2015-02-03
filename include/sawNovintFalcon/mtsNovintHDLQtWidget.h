@@ -48,6 +48,8 @@ signals:
 
 private slots:
     void timerEvent(QTimerEvent * event);
+    void SlotSliderForceValueChanged(void);
+    void SlotResetForces(void);
 
 private:
     //! setup GUI
@@ -57,6 +59,7 @@ private:
 protected:
     struct ArmStruct {
         mtsFunctionRead GetPositionCartesian;
+        mtsFunctionWrite SetForceCartesian;
         mtsFunctionRead GetPeriodStatistics;
     } Arm;
 
@@ -65,6 +68,7 @@ private:
 
     prmPositionCartesianGet Position;
     vctQtWidgetFrameDoubleRead * QFRPositionWidget;
+    vctQtWidgetDynamicVectorDoubleWrite * QVWForceSliderWidget;
 
     // timing
     mtsIntervalStatistics IntervalStatistics;

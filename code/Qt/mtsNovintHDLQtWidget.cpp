@@ -26,6 +26,7 @@ http://www.cisst.org/cisst/license.txt.
 
 // cisst
 #include <cisstMultiTask/mtsInterfaceRequired.h>
+#include <cisstParameterTypes/prmForceCartesianSet.h>
 
 #include <sawNovintFalcon/mtsNovintHDLQtWidget.h>
 
@@ -42,6 +43,7 @@ mtsNovintHDLQtWidget::mtsNovintHDLQtWidget(const std::string & componentName, do
     mtsInterfaceRequired * interfaceRequired = AddInterfaceRequired("Falcon");
     if (interfaceRequired) {
         interfaceRequired->AddFunction("GetPositionCartesian", Arm.GetPositionCartesian);
+        interfaceRequired->AddFunction("SetForceCartesian", Arm.SetForceCartesian);
         interfaceRequired->AddFunction("GetPeriodStatistics", Arm.GetPeriodStatistics);
     }
     setupUi();
@@ -117,7 +119,35 @@ void mtsNovintHDLQtWidget::setupUi(void)
     timingLayout->addStretch();
     topLayout->addLayout(timingLayout);
 
+    QLabel * forceLabel = new QLabel("Forces:");
+    mainLayout->addWidget(forceLabel);
+    QVWForceSliderWidget = new vctQtWidgetDynamicVectorDoubleWrite(vctQtWidgetDynamicVectorDoubleWrite::SLIDER_WIDGET);
+    QVWForceSliderWidget->SetValue(vctDoubleVec(3, 0.0));
+    QVWForceSliderWidget->SetRange(vctDoubleVec(3, -20.0), vctDoubleVec(3, 20.0));
+    mainLayout->addWidget(QVWForceSliderWidget);
+    QPushButton * resetForces = new QPushButton("Reset forces");
+    mainLayout->addWidget(resetForces);
+
     setLayout(mainLayout);
     setWindowTitle("Novint Falcon");
     resize(sizeHint());
+
+    connect(QVWForceSliderWidget, SIGNAL(valueChanged()), this, SLOT(SlotSliderForceValueChanged()));
+    connect(resetForces, SIGNAL(clicked()), this, SLOT(SlotResetForces()));
+}
+
+void mtsNovintHDLQtWidget::SlotSliderForceValueChanged()
+{
+    vctDoubleVec force(3);
+    QVWForceSliderWidget->GetValue(force);
+    prmForceCartesianSet prmForce;
+    prmForce.Force().Assign(force[0], force[1], force[2], 0.0, 0.0, 0.0);
+    Arm.SetForceCartesian(prmForce);
+}
+
+void mtsNovintHDLQtWidget::SlotResetForces()
+{
+    vctDoubleVec zeros(3, 0.0);
+    QVWForceSliderWidget->SetValue(zeros);
+    SlotSliderForceValueChanged();
 }
