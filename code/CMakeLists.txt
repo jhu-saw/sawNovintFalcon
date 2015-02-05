@@ -36,6 +36,8 @@ if (cisst_FOUND_AS_REQUIRED)
                                      "${sawNovintFalcon_BINARY_DIR}/include")
     set (sawNovintFalcon_LIBRARY_DIR "${LIBRARY_OUTPUT_PATH}")
     set (sawNovintFalcon_LIBRARIES sawNovintFalcon ${NOVINT_LIBRARIES})
+    set (sawNovintFalcon_CONFIG_FILE_DIR "${sawNovintFalcon_BINARY_DIR}")
+
 
     # Set the version number
     set (sawNovintFalcon_VERSION_MAJOR "1")
@@ -56,6 +58,7 @@ if (cisst_FOUND_AS_REQUIRED)
                  )
     set_property (TARGET sawNovintFalcon PROPERTY FOLDER "sawNovintFalcon")
     target_link_libraries (sawNovintFalcon ${NOVINT_LIBRARIES})
+    cisst_target_link_libraries (sawNovintFalcon ${REQUIRED_CISST_LIBRARIES})
 
     # add Qt code
     add_subdirectory (Qt)
@@ -65,7 +68,10 @@ if (cisst_FOUND_AS_REQUIRED)
                     "${sawNovintFalcon_BINARY_DIR}/sawNovintFalconConfig.cmake"
                      @ONLY@)
 
-    cisst_target_link_libraries (sawNovintFalcon ${REQUIRED_CISST_LIBRARIES})
+    cisst_add_config_version ("${sawNovintFalcon_CONFIG_FILE_DIR}/sawNovintFalconConfigVersion.cmake"
+                              VERSION ${sawNovintFalcon_VERSION}
+                              DESTINATION ${CISST_CMAKE_INSTALL_SUFFIX}/saw
+                              COMPONENT sawNovintFalcon)
 
     # Install target for headers and library
     install (DIRECTORY
