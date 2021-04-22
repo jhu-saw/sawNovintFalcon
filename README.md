@@ -1,3 +1,8 @@
+Warning
+=======
+
+This code is not maintained, use the [sawForceDimensionSDK wrapper](https://github.com/jhu-saw/sawForceDimensionSDK) instead.  The ForceDimension SDK supports the Novint Falcon on Windows and Linux.
+
 sawNovintFalcon
 ===============
 
